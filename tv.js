@@ -1,7 +1,7 @@
 import * as THREE from 'three'
-import { RectAreaLightUniformsLib } from 'three/examples/jsm/lights/RectAreaLightUniformsLib.js';
-import { RectAreaLightHelper } from 'three/examples/jsm/helpers/RectAreaLightHelper.js';
-// const fs = require('fs');
+import { RectAreaLightUniformsLib } from 'three/examples/jsm/lights/RectAreaLightUniformsLib.js'
+import { RectAreaLightHelper } from 'three/examples/jsm/helpers/RectAreaLightHelper.js'
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 
 //renderer
 const renderer = new THREE.WebGLRenderer()
@@ -18,8 +18,10 @@ const camera = new THREE.PerspectiveCamera(
 
 const axesHelper = new THREE.AxesHelper(4);
 scene.add(axesHelper)
-// camera.position.z = 6;
-// camera.position.y = .01;
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableKeys = true;
+
 
 const render = () => {
     requestAnimationFrame(render);
@@ -54,13 +56,10 @@ table.position.set(0, -1, 0)
 
 //tv
 let geometry = new THREE.BoxGeometry(3, 2.2, .1);
-let backTex = new THREE.MeshPhongMaterial({ color: 0x000000 })
-let TextureLoader = new THREE.TextureLoader()
-let imageSrc = TextureLoader.load('texture/matt.jpg')
+let t = new THREE.TextureLoader().load('texture/tvs.jpg')
+let backTex = new THREE.MeshPhongMaterial({ map: t })
+let imageSrc = new THREE.TextureLoader().load('texture/matt.jpg')
 let imageTex = new THREE.MeshLambertMaterial({ map: imageSrc })
-
-
-
 
 let materials = [
     imageTex, // Right side
@@ -73,32 +72,104 @@ let materials = [
 
 let tv = new THREE.Mesh(geometry, materials)
 tv.position.set(0, 0.7, 0)
-// scene.add(tv)
+
+// const TexAnime = (path, index) => {
+//     if (index >= path.length) {
+//         index = 0
+//     }
+//     new THREE.TextureLoader().load(`texture/gif/${path[index]}`, (texture) => {
+//         let geometry = new THREE.BoxGeometry(3, 2.2, .1);
+//         let backTex = new THREE.MeshPhongMaterial({ map: texture })
+//         let imageSrc = new THREE.TextureLoader().load('texture/matt.jpg')
+//         let imageTex = new THREE.MeshLambertMaterial({ map: imageSrc })
+//         let materials = [
+//             imageTex, // Right side
+//             imageTex, // Left side
+//             imageTex, // Top side
+//             imageTex, // Bottom side
+//             imageTex, // Front side
+//             backTex // Back side with image
+//         ];
+//         let tv = new THREE.Mesh(geometry, materials)
+//         tv.position.set(0, 0.7, 0)
+//         scene.add(tv);
+//         renderer.render(scene, camera);
+//         return tv
+//     })
+
+// }
+
+
+
+
+//animate tv screen
+function animateTexture() {
+
+    t.offset.x += 0.01;
+    t.wrapS = t.wrapT = THREE.RepeatWrapping;
+    renderer.render(scene, camera);
+    requestAnimationFrame(animateTexture);
+}
+
+animateTexture();
+
 
 //legg
-let tvLegGeometry = new THREE.BoxGeometry(0.1, 1, 0.1)
-let leg1 = new THREE.Mesh(tvLegGeometry, imageTex)
-leg1.position.set(0.2, -0.3, 0.1);
-let leg2 = leg1.clone()
-leg2.position.set(-0.2, -0.3, 0.1)
-// scene.add(leg2)
-// scene.add(leg1)
-
-//triangle thing in the back
-
-let tri = new THREE.TetrahedronGeometry(.17, 4)
-// let triTex = new THREE.MeshBasicMaterial({ map: imageSrc })
-let t = new THREE.Mesh(tri, imageTex)
-let t2 = t.clone()
-t.position.set(0.2, -0.76, 0.1)
-t2.position.set(-0.2, -0.76, 0.1)
+let tvLegGeometry = new THREE.CylinderGeometry(0.14, 0.14, 1, 6)
+let tds = new THREE.TextureLoader().load('texture/ds.webp')
+let akk = new THREE.MeshLambertMaterial({ map: tds })
+let leg1 = new THREE.Mesh(tvLegGeometry, akk)
+leg1.position.set(0, -0.3, 0.1);
 
 
+//thing in the back
 
+const length = .001, width = .001;
+
+const shape = new THREE.Shape();
+shape.moveTo(0, 0);
+shape.lineTo(0, width);
+shape.lineTo(length, width);
+shape.lineTo(length, 0);
+shape.lineTo(0, 0);
+
+const extrudeSettings = {
+    steps: 3,
+    depth: .2,
+    // bevelEnabled: true,
+    bevelThickness: .12,
+    bevelSize: .6,
+    bevelOffset: 0,
+    bevelSegments: 2
+};
+
+//
+const block = new THREE.ExtrudeGeometry(shape, extrudeSettings);
+// const m = new THREE.MeshLambertMaterial({ color: 0x0fff00 });
+const mesh = new THREE.Mesh(block, imageTex);
+scene.add(mesh);
+mesh.position.set(0, .5, .1)
+
+//ring
+
+const ring = new THREE.RingGeometry(.12, .4, 10);
+const texring = new THREE.MeshLambertMaterial({ color: 0x00000, side: THREE.DoubleSide });
+const Ringmesh = new THREE.Mesh(ring, texring);
+Ringmesh.lookAt(tv.position)
+Ringmesh.position.set(0, -.74, .1)
+scene.add(Ringmesh);
+
+
+//button
+const btn = new THREE.CircleGeometry(.04, 32);
+const m = new THREE.MeshPhongMaterial({ color: 0xfc2617 });
+const circle = new THREE.Mesh(btn, m);
+circle.lookAt(0, 0, -5)
+circle.position.set(-1.2, -.35, -0.1)
+scene.add(circle);
 
 
 //borderTV
-
 
 let Bgeo = new THREE.BoxGeometry(3, 0.1, .1)
 // let BoarderTex = new THREE.MeshBasicMaterial({ map: imageSrc })
@@ -106,8 +177,6 @@ let BoarderH = new THREE.Mesh(Bgeo, imageTex)
 BoarderH.position.set(0, -0.35, -0.01)
 let BoarderH2 = BoarderH.clone()
 BoarderH2.position.set(0, 1.75, -0.01)
-
-
 
 let Bgeo2 = new THREE.BoxGeometry(.1, 2, .1)
 let BoarderV = new THREE.Mesh(Bgeo2, imageTex)
@@ -118,13 +187,13 @@ BoarderV2.position.set(-1.45, .7, -0.01)
 
 
 const group = new THREE.Group();
-group.add(tv, leg1, leg2, table, BoarderH, BoarderH2, BoarderV, BoarderV2, t, t2);
+group.add(tv, leg1, table, BoarderH, BoarderH2, BoarderV, BoarderV2);
 
 scene.add(group)
 
 //light 
 
-const ambientLight = new THREE.AmbientLight(0xffffff, .08)
+const ambientLight = new THREE.AmbientLight(0xffffff, 2)
 scene.add(ambientLight)
 
 const light = new THREE.PointLight(0xFFD57A, 50, 7);
@@ -154,6 +223,7 @@ Rlight2.add(rectLightHelper2);
 
 
 
+
 //initial camera position
 
 const defaultCameraLight = () => {
@@ -163,7 +233,7 @@ const defaultCameraLight = () => {
     let angle = Date.now() * 0.0003
     camera.position.x = Math.cos(angle) * radius;
     camera.position.z = Math.sin(angle) * radius;
-
+    controls.update()
     camera.lookAt(tv.position)
     light.position.copy(camera.position)
     render()
@@ -180,7 +250,7 @@ defaultCameraLight()
 
 function cameraMoveLeft() {
     let radius = 6
-    let angle = Date.now() * 0.0003
+    let angle = Date.now() * 0.0005
     camera.position.x = Math.cos(angle) * radius;
     camera.position.z = Math.sin(angle) * radius;
     camera.lookAt(tv.position);
@@ -190,7 +260,7 @@ function cameraMoveLeft() {
 
 function cameraMoveRight() {
     let radius = 6
-    let angle = Date.now() * 0.0003
+    let angle = Date.now() * 0.0005
     camera.position.x = Math.cos(-angle) * radius;
     camera.position.z = Math.sin(-angle) * radius;
     camera.lookAt(tv.position);
@@ -199,8 +269,8 @@ function cameraMoveRight() {
 }
 function cameraMoveUp() {
     let radius = 6
-    let angle = Date.now() * 0.0003
-    camera.position.y += 0.01
+    let angle = Date.now() * 0.0005
+    camera.position.y += 0.02;
     camera.position.z = Math.sin(angle) * radius;
     camera.lookAt(tv.position);
 
@@ -208,8 +278,8 @@ function cameraMoveUp() {
 }
 function cameraMoveDown() {
     let radius = 6
-    let angle = Date.now() * 0.0003
-    camera.position.y -= 0.01;
+    let angle = Date.now() * 0.0005
+    camera.position.y -= 0.02;
     camera.position.z = Math.sin(angle) * radius;
     camera.lookAt(tv.position);
 
@@ -222,23 +292,24 @@ function cameraMoveDown() {
 // animate();
 
 function animate() {
-    // requestAnimationFrame(animate);
+    requestAnimationFrame(animate);
 
-    let radius = 6
+    let radius = 5
     let angle = Date.now() * 0.0003
-    camera.position.x = Math.cos(angle) * radius;
-    camera.position.z = Math.sin(angle) * radius;
+    light.position.x = Math.cos(angle) * radius;
+    light.position.z = Math.sin(angle) * radius;
     // camera.position = Math.cos(angle) * radius;
     // scene.rotation.y = Math.cos(angle) * radius;
-    light.position.copy(camera.position);
+    // light.position.copy(camera.position);
     // light.target.position.copy(tv.position)
-    camera.lookAt(tv.position);
-    render()
+    light.lookAt(tv.position);
+    // render()
+    renderer.render(scene, camera); g
 }
 function animate2() {
     // requestAnimationFrame(animate);
 
-    let radius = 6
+    let radius = 5
     let angle = Date.now() * 0.0003
     camera.position.x = Math.cos(angle * -3) * radius;
     camera.position.z = Math.sin(angle * -1) * radius;
@@ -253,7 +324,7 @@ function animate2() {
 
 //mouse event actions
 const lightMoveLeft = () => {
-    let radius = 4
+    let radius = 6
     let angle = Date.now() * 0.003
     light.position.x = Math.sin(angle) * radius;
     light.position.z = Math.cos(angle) * radius;
@@ -263,7 +334,7 @@ const lightMoveLeft = () => {
 
 }
 const lightMoveRight = () => {
-    let radius = 4
+    let radius = 6
     let angle = Date.now() * 0.003
     light.position.x = Math.cos(angle) * radius;
     light.position.z = Math.sin(angle) * radius;
