@@ -23,20 +23,17 @@ const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableKeys = true;
 
 
-const render = () => {
-    requestAnimationFrame(render);
-    renderer.render(scene, camera);
-}
 
 // Create room
 const roomGeometry = new THREE.BoxGeometry(10, 5, 10);
 const wallTexture = new THREE.TextureLoader().load('texture/wall-texture.jpg');
 const floorTexture = new THREE.TextureLoader().load('texture/floor-texture.avif');
+const cilTexture = new THREE.TextureLoader().load('texture/starry-night-sky_1048-11828.avif');
 
 const roomMaterials = [
     new THREE.MeshLambertMaterial({ map: wallTexture, side: THREE.BackSide }), // Right face - red color
     new THREE.MeshLambertMaterial({ map: wallTexture, side: THREE.BackSide }), // Left face - green color
-    new THREE.MeshLambertMaterial({ color: 0x000000, side: THREE.BackSide }), // Top face - blue color
+    new THREE.MeshLambertMaterial({ map: cilTexture, side: THREE.BackSide }), // Top face - blue color
     new THREE.MeshLambertMaterial({ map: floorTexture, side: THREE.BackSide }), // Bottom face - yellow color
     new THREE.MeshLambertMaterial({ map: wallTexture, side: THREE.BackSide }), // Front face - magenta color
     new THREE.MeshLambertMaterial({ map: wallTexture, side: THREE.BackSide })  // Back face - cyan color
@@ -110,8 +107,15 @@ function animateTexture() {
     renderer.render(scene, camera);
     requestAnimationFrame(animateTexture);
 }
+function animateTexture2() {
 
+    cilTexture.offset.x += 0.0005;
+    cilTexture.wrapS = cilTexture.wrapT = THREE.RepeatWrapping;
+    renderer.render(scene, camera);
+    requestAnimationFrame(animateTexture2);
+}
 animateTexture();
+animateTexture2();
 
 
 //legg
@@ -147,7 +151,7 @@ const extrudeSettings = {
 const block = new THREE.ExtrudeGeometry(shape, extrudeSettings);
 // const m = new THREE.MeshLambertMaterial({ color: 0x0fff00 });
 const mesh = new THREE.Mesh(block, imageTex);
-scene.add(mesh);
+// scene.add(mesh);
 mesh.position.set(0, .5, .1)
 
 //ring
@@ -157,7 +161,7 @@ const texring = new THREE.MeshLambertMaterial({ color: 0x00000, side: THREE.Doub
 const Ringmesh = new THREE.Mesh(ring, texring);
 Ringmesh.lookAt(tv.position)
 Ringmesh.position.set(0, -.74, .1)
-scene.add(Ringmesh);
+// scene.add(Ringmesh);
 
 
 //button
@@ -166,7 +170,7 @@ const m = new THREE.MeshPhongMaterial({ color: 0xfc2617 });
 const circle = new THREE.Mesh(btn, m);
 circle.lookAt(0, 0, -5)
 circle.position.set(-1.2, -.35, -0.1)
-scene.add(circle);
+// scene.add(circle);
 
 
 //borderTV
@@ -186,17 +190,13 @@ BoarderV2.position.set(-1.45, .7, -0.01)
 
 
 
-const group = new THREE.Group();
-group.add(tv, leg1, table, BoarderH, BoarderH2, BoarderV, BoarderV2);
-
-scene.add(group)
 
 //light 
 
-const ambientLight = new THREE.AmbientLight(0xffffff, 2)
+const ambientLight = new THREE.AmbientLight(0xffffff, .9)
 scene.add(ambientLight)
 
-const light = new THREE.PointLight(0xFFD57A, 50, 7);
+const light = new THREE.PointLight(0xFFD57A, 50, 10);
 scene.add(light)
 
 
@@ -206,11 +206,11 @@ let Rlight1 = new THREE.RectAreaLight(0xD1D5E6, 1, 5, .1)
 // Rlight1.power(2.2)
 Rlight1.position.set(0, -1.2, -0.51)
 Rlight1.lookAt(0, -1.2, -10)
-scene.add(Rlight1)
+// scene.add(Rlight1)
 let Rlight2 = Rlight1.clone()
 Rlight2.position.set(0, -1.2, 0.51)
 Rlight2.lookAt(0, -1.2, 10)
-scene.add(Rlight2)
+// scene.add(Rlight2)
 
 
 
@@ -222,29 +222,24 @@ Rlight2.add(rectLightHelper2);
 
 
 
+const group = new THREE.Group();
+group.add(tv, leg1, table, BoarderH, BoarderH2, BoarderV, BoarderV2, circle, Ringmesh, mesh, Rlight2, Rlight1);
+group.position.set(0, 0, 3)
+
+scene.add(group)
 
 
 //initial camera position
 
 const defaultCameraLight = () => {
-    // let radius = 6
-    // let angle = Date.now() * 0.000004
-    let radius = 6
-    let angle = Date.now() * 0.0003
-    camera.position.x = Math.cos(angle) * radius;
-    camera.position.z = Math.sin(angle) * radius;
+    camera.position.set(0, 0, -6)
     controls.update()
     camera.lookAt(tv.position)
-    light.position.copy(camera.position)
-    render()
+    light.position.set(0, 0, -3)
+    renderer.render(scene, camera);
 }
 defaultCameraLight()
 
-
-// camera.add(light)
-// light.target.position(tv.position.x, tv.position.y, tv.position.z)
-// scene.add(light.target)
-// Animation loop
 
 //keyboard event action
 
@@ -254,8 +249,7 @@ function cameraMoveLeft() {
     camera.position.x = Math.cos(angle) * radius;
     camera.position.z = Math.sin(angle) * radius;
     camera.lookAt(tv.position);
-
-    render()
+    renderer.render(scene, camera);
 }
 
 function cameraMoveRight() {
@@ -264,8 +258,7 @@ function cameraMoveRight() {
     camera.position.x = Math.cos(-angle) * radius;
     camera.position.z = Math.sin(-angle) * radius;
     camera.lookAt(tv.position);
-
-    render()
+    renderer.render(scene, camera);
 }
 function cameraMoveUp() {
     let radius = 6
@@ -274,7 +267,7 @@ function cameraMoveUp() {
     camera.position.z = Math.sin(angle) * radius;
     camera.lookAt(tv.position);
 
-    render()
+    renderer.render(scene, camera);
 }
 function cameraMoveDown() {
     let radius = 6
@@ -283,7 +276,7 @@ function cameraMoveDown() {
     camera.position.z = Math.sin(angle) * radius;
     camera.lookAt(tv.position);
 
-    render()
+    renderer.render(scene, camera);
 }
 
 
@@ -292,55 +285,44 @@ function cameraMoveDown() {
 // animate();
 
 function animate() {
-    requestAnimationFrame(animate);
 
-    let radius = 5
-    let angle = Date.now() * 0.0003
-    light.position.x = Math.cos(angle) * radius;
-    light.position.z = Math.sin(angle) * radius;
-    // camera.position = Math.cos(angle) * radius;
-    // scene.rotation.y = Math.cos(angle) * radius;
-    // light.position.copy(camera.position);
-    // light.target.position.copy(tv.position)
+    camera.position.y += 0.01;
+    camera.lookAt(tv.position)
     light.lookAt(tv.position);
-    // render()
-    renderer.render(scene, camera); g
+    render()
+
 }
 function animate2() {
-    // requestAnimationFrame(animate);
+    requestAnimationFrame(animate2);
 
-    let radius = 5
+    let radius = 6
     let angle = Date.now() * 0.0003
     camera.position.x = Math.cos(angle * -3) * radius;
     camera.position.z = Math.sin(angle * -1) * radius;
-    // camera.position = Math.cos(angle) * radius;
-    // scene.rotation.y = Math.cos(angle) * radius;
     light.position.copy(camera.position);
-    // light.target.position.copy(tv.position)
     camera.lookAt(tv.position);
 
-    render()
+    renderer.render(scene, camera);
 }
 
 //mouse event actions
 const lightMoveLeft = () => {
-    let radius = 6
+    let radius = 3
     let angle = Date.now() * 0.003
     light.position.x = Math.sin(angle) * radius;
     light.position.z = Math.cos(angle) * radius;
     light.lookAt(tv.position);
 
-    render()
+    renderer.render(scene, camera);
 
 }
 const lightMoveRight = () => {
-    let radius = 6
+    let radius = 3
     let angle = Date.now() * 0.003
     light.position.x = Math.cos(angle) * radius;
     light.position.z = Math.sin(angle) * radius;
     light.lookAt(tv.position);
-
-    render()
+    renderer.render(scene, camera);
 
 }
 
@@ -388,4 +370,12 @@ document.addEventListener('keydown', (event) => {
     else if (keyName === 'g') {
         animate2()
     }
+})
+// renderer.setSize(window.innerWidth, window.innerHeight)
+window.addEventListener("resize", () => {
+    renderer.setSize(window.innerWidth, window.innerHeight)
+    document.body.appendChild(renderer.domElement);
+
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
 })
