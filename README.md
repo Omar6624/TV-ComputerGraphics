@@ -1,2 +1,15 @@
-#A tv in the middle of a room
-##created from scrach using Three.js
+
+# A TV in the middle of a room
+
+It was created from scratch using Three.js.
+
+---
+
+## Demo
+
+Run the following command to see the application in action:
+
+```bash
+npm run dev
+```
+
